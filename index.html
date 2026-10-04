@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPI Motivation Pro - Workflow Manager</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div class="app-container">
+        
+        <!-- SIDEBAR -->
+        <nav class="sidebar glass-panel-fixed">
+            <div class="brand">
+                <h1 class="logo">KPI<span>PRO</span></h1>
+                <p style="font-size: 0.75rem; color:#9ca3af; text-transform:uppercase; letter-spacing:1px; margin-top: -5px;">Secure Workflow</p>
+            </div>
+            
+            <div class="api-config mt-6">
+                 <input type="password" id="api-url" class="glass-input" placeholder="Google Script Web App URL..." style="font-size: 0.75rem;" title="L'URL de votre déploiement de Code.gs">
+                 <button class="btn btn-secondary mt-2 w-full" id="btn-sync" style="font-size:0.8rem">Actualiser les données</button>
+            </div>
+
+            <ul class="nav-links mt-6">
+                <li class="active" data-view="dashboard"><i>📊</i><span>Dashboard</span></li>
+                <li data-view="workflow"><i>🎯</i><span>Sélection / Workflow</span><span class="badge" id="badge-sel">0</span></li>
+            </ul>
+        </nav>
+
+        <!-- MAIN WINDOW -->
+        <main class="main-content">
+            
+            <!-- VIEW: DASHBOARD -->
+            <section id="view-dashboard" class="view-section active">
+                <header class="section-header">
+                    <h2>Analyse Globale des KPIS (Export SAP)</h2>
+                    <p class="text-muted">Lecture seule depuis l'onglet 'Export KPI'</p>
+                </header>
+
+                <div class="stats-grid mt-6">
+                    <div class="stat-card glass-panel">
+                        <h3>Volume Lignes</h3>
+                        <div class="stat-val" id="dash-lines">--</div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <h3>Work Planifié (h)</h3>
+                        <div class="stat-val text-blue" id="dash-work">--</div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <h3>Actual Work (h)</h3>
+                        <div class="stat-val text-green" id="dash-actual">--</div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <h3>Taux d'Exécution</h3>
+                        <div class="stat-val" id="dash-taux">--%</div>
+                    </div>
+                </div>
+
+                <div class="charts-grid mt-6">
+                    <div class="chart-container glass-panel">
+                        <h4>Performance par Planner (Work vs Actual)</h4>
+                        <canvas id="chartPlanners"></canvas>
+                    </div>
+                    <div class="chart-container glass-panel">
+                        <h4>Répartition par Catégorie</h4>
+                        <canvas id="chartCategories"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW: WORKFLOW SELECTION -->
+            <section id="view-workflow" class="view-section">
+                <header class="section-header">
+                    <h2>Workflow de relance collaborateurs</h2>
+                    <p class="text-muted">Filtrez, Sélectionnez, Vérifiez et Notifiez de façon sécurisée.</p>
+                </header>
+
+                <div class="filters-bar glass-panel mt-6">
+                    <div class="filter-group">
+                        <label>Recherche rapide</label>
+                        <input type="text" id="search-bar" class="glass-input" placeholder="Order / MR / Short Text...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Plant</label>
+                        <select id="flt-plant" class="glass-input"><option value="">Tous</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Planner</label>
+                        <select id="flt-planner" class="glass-input"><option value="">Tous</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Work Center</label>
+                        <select id="flt-workcenter" class="glass-input"><option value="">Tous</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Category</label>
+                        <select id="flt-category" class="glass-input"><option value="">Toutes</option></select>
+                    </div>
+                    <div class="filter-group filter-actions">
+                        <button class="btn btn-secondary" id="btn-reset-filters">Réinitialiser</button>
+                    </div>
+                </div>
+
+                <div class="table-frame glass-panel mt-6">
+                    <div class="table-header-tools">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="check-all-visible"> 
+                            <span class="checkmark"></span> Sélectionner les lignes visibles
+                        </label>
+                        <div class="selection-status text-blue">
+                             Lignes sélectionnées : <span id="sel-count">0</span>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Plant</th>
+                                    <th>Planner</th>
+                                    <th>Work Center</th>
+                                    <th>Order / MR</th>
+                                    <th>Operation text</th>
+                                    <th>Category</th>
+                                    <th>Work</th>
+                                    <th>Actual Work</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <tr><td colspan="9" class="text-center text-muted">Veuillez synchroniser les données pour commencer.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- WORKFLOW ACTION BAR (Bottom) -->
+    <div class="workflow-action-bar" id="action-bar">
+        <div>
+            <span class="bar-title">ÉTAPE : SÉLECTION → EXTRACTION EN COURS</span>
+            <p>Planner ciblé : <strong id="abar-planner">Aucun</strong> (<span id="abar-count">0</span> lignes associées)</p>
+        </div>
+        <button class="btn btn-primary btn-large" id="btn-trigger-workflow">VALIDER L'EXTRACTION & VÉRIFIER</button>
+    </div>
+
+    <!-- MODAL: WORKFLOW VERIFICATION -->
+    <div class="modal" id="workflow-modal">
+        <div class="modal-content glass-panel drop-shadow-xl" style="max-width: 800px; width:100%;">
+            <div class="modal-header">
+                <h2>ÉTAPE VERIFICATION & ENVOI</h2>
+                <div class="workflow-stepper">
+                    <span class="step done">SÉLECTION</span> -> 
+                    <span class="step done">EXTRACTION</span> -> 
+                    <span class="step active">VÉRIFICATION</span> -> 
+                    <span class="step">ENVOI</span>
+                </div>
+            </div>
+            
+            <div class="modal-body mt-6">
+                <div class="mb-4">
+                    <p class="text-muted"><strong>Envoi ciblé vers le Planner : <span id="mod-planner" class="text-blue"></span></strong></p>
+                    <p id="mod-email-status" style="font-size: 0.85rem; margin-top:5px;"></p>
+                </div>
+
+                <label>Personnaliser le Nudge/Message d'accompagnement :</label>
+                <textarea id="mod-message" class="glass-input mt-2" rows="3">Bonjour,
+Nous avons remarqué plusieurs actions en attente de clôture ou nécessitant la saisie d'"Actual Work" dans le système.
+Veuillez vérifier les ordres de maintenance ci-joint et fermer les lignes concernées dans les plus brefs délais.</textarea>
+
+                <div class="summary-table-box mt-4">
+                    <table class="data-table small">
+                        <thead><tr><th>Order</th><th>Op text</th><th>Category</th><th>Work</th></tr></thead>
+                        <tbody id="mod-task-list"></tbody>
+                    </table>
+                </div>
+
+                <div id="envoi-status" class="mt-4 envoi-status-box" style="display:none;"></div>
+            </div>
+            
+            <div class="modal-footer mt-6" style="display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.1); padding-top:1rem;">
+                <button class="btn btn-secondary alert-red" id="btn-rejeter">REJETER (Annuler)</button>
+                <button class="btn btn-primary" id="btn-approuver" style="background:#10b981; border:none; box-shadow: 0 4px 15px rgba(16,185,129,0.3);">APPROUVER & ENVOYER 📩</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
